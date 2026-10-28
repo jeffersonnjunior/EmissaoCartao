@@ -1,0 +1,51 @@
+# Api (REST) + Worker (consumer/outbox) usando infra do Cadastro
+# (SQL Server :1433 e RabbitMQ :5672).
+#
+# Pré-requisito:
+#   cd ../CadastroCliente/CadastroCliente && docker compose up -d
+#   cd ../PropostaCredito && docker compose up -d --build
+#
+# Depois:
+#   docker compose up -d --build
+
+x-shared-env: &shared-env
+  ASPNETCORE_ENVIRONMENT: Development
+  DOTNET_ENVIRONMENT: Development
+  ConnectionStrings__Default: Server=host.docker.internal,1433;Database=EmissaoCartao;User Id=sa;Password=Your_strong_Password123;TrustServerCertificate=True;Encrypt=False
+  RabbitMq__Host: host.docker.internal
+  RabbitMq__Port: "5672"
+  RabbitMq__UserName: credito
+  RabbitMq__Password: credito123
+  RabbitMq__ConsumeExchange: credito.propostas
+  RabbitMq__ConsumeRoutingKey: proposta.gerada
+  RabbitMq__ConsumeQueue: cartao.proposta-gerada
+  RabbitMq__ConsumeDlq: cartao.proposta-gerada.dlq
+  RabbitMq__PublishExchange: credito.cartoes
+  RabbitMq__PublishRoutingKey: cartoes.emitidos
+  RabbitMq__Enabled: "true"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: credito-cartao-api
+    ports:
+      - "8082:8080"
+    environment:
+      <<: *shared-env
+      ASPNETCORE_URLS: http://+:8080
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: credito-cartao-worker
+    environment:
+      <<: *shared-env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - api
