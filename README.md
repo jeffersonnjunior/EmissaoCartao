@@ -2,6 +2,13 @@
 
 Microsserviço que **consome** `PropostaGerada`, emite cartões conforme a proposta aprovada e publica `CartoesEmitidos`.
 
+## Diagrama
+
+Fluxo ponta a ponta da concessão de crédito (Excalidraw):  
+[`docs/fluxo-concessao-credito.excalidraw`](docs/fluxo-concessao-credito.excalidraw)
+
+Abra em [excalidraw.com](https://excalidraw.com) → **Open** → selecione o arquivo.
+
 ## Processos
 
 | Projeto | Responsabilidade |
